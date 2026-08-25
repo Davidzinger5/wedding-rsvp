@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ניהול חתונה - אישורי הגעה וסידור שולחנות</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FBF5EE;
+    --wine:#6B2C39;
+    --wine-dark:#4E1F29;
+    --gold:#C9A24B;
+    --ink:#2B2320;
+    --ok:#3F7A57;
+    --ok-bg:#E7F2EB;
+    --no:#B14A3D;
+    --no-bg:#FBEAE7;
+    --wait:#8a7d6f;
+    --wait-bg:#f1ece5;
+    --card:#FFFFFF;
+    --line:#e7dccc;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--cream);
+    font-family:'Assistant',sans-serif;
+    color:var(--ink);
+  }
+  header{
+    background:linear-gradient(135deg, var(--wine-dark), var(--wine));
+    color:#fff;
+    padding:22px 28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  header h1{
+    font-family:'Frank Ruhl Libre',serif;
+    font-size:24px;
+    margin:0;
+  }
+  header .sub{ font-size:13px; opacity:0.85; }
+  .settings-toggle{
+    background:rgba(255,255,255,0.15);
+    border:1px solid rgba(255,255,255,0.4);
+    color:#fff;
+    padding:8px 14px;
+    border-radius:8px;
+    cursor:pointer;
+    font-family:'Assistant',sans-serif;
+    font-size:13px;
+  }
+  .settings-panel{
+    display:none;
+    background:#fff;
+    border-bottom:1px solid var(--line);
+    padding:18px 28px;
+  }
+  .settings-panel.show{ display:block; }
+  .settings-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:14px;
+    max-width:1100px;
+  }
+  .field label{ font-size:12.5px; color:#6b5f57; display:block; margin-bottom:4px; }
+  .field input, .field textarea{
+    width:100%;
+    padding:9px 10px;
+    border-radius:8px;
+    border:1.5px solid var(--line);
+    font-family:'Assistant',sans-serif;
+    font-size:14px;
+  }
+  .field textarea{ min-height:70px; resize:vertical; }
+  .save-settings{
+    margin-top:12px;
+    background:var(--wine);
+    color:#fff;
+    border:none;
+    padding:9px 18px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:700;
+  }
+
+  nav.tabs{
+    display:flex;
+    gap:4px;
+    padding:14px 28px 0;
+    background:var(--cream);
+    border-bottom:1px solid var(--line);
+  }
+  nav.tabs button{
+    background:none;
+    border:none;
+    padding:12px 18px;
+    font-family:'Assistant',sans-serif;
+    font-size:15px;
+    font-weight:600;
+    color:#8a7d6f;
+    cursor:pointer;
+    border-bottom:3px solid transparent;
+  }
+  nav.tabs button.active{
+    color:var(--wine-dark);
+    border-bottom-color:var(--gold);
+  }
+
+  main{ padding:24px 28px 60px; max-width:1200px; margin:0 auto; }
+  .panel{ display:none; }
+  .panel.active{ display:block; }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:20px;
+    margin-bottom:20px;
+  }
+  .card h2{
+    font-family:'Frank Ruhl Libre',serif;
+    font-size:19px;
+    color:var(--wine-dark);
+    margin:0 0 14px;
+  }
+  .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
+  .row .field{ flex:1; min-width:150px; }
+
+  button.primary{
+    background:var(--wine);
+    color:#fff;
+    border:none;
+    padding:10px 18px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:700;
+    font-size:14px;
+  }
+  button.secondary{
+    background:#fff;
+    color:var(--wine);
+    border:1.5px solid var(--wine);
+    padding:9px 16px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:700;
+    font-size:14px;
+  }
+  button.small{ padding:6px 10px; font-size:13px; border-radius:6px; }
+  button.wa{
+    background:#25D366;
+    color:#fff;
+    border:none;
+    padding:7px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:13px;
+    font-weight:700;
+  }
+  button.danger-outline{
+    background:#fff; color:var(--no); border:1.5px solid var(--no);
+    padding:6px 10px; border-radius:6px; font-size:13px; cursor:pointer;
+  }
+
+  table{ width:100%; border-collapse:collapse; font-size:14px; }
+  th{
+    text-align:right;
+    font-size:12.5px;
+    color:#8a7d6f;
+    padding:8px 6px;
+    border-bottom:2px solid var(--line);
+  }
+  td{ padding:9px 6px; border-bottom:1px solid var(--line); vertical-align:middle; }
+
+  .badge{
+    display:inline-block;
+    padding:3px 10px;
+    border-radius:20px;
+    font-size:12.5px;
+    font-weight:700;
+  }
+  .badge.ok{ background:var(--ok-bg); color:var(--ok); }
+  .badge.no{ background:var(--no-bg); color:var(--no); }
+  .badge.wait{ background:var(--wait-bg); color:var(--wait); }
+
+  .stats{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:16px; }
+  .stat{
+    background:#fff; border:1px solid var(--line); border-radius:12px;
+    padding:14px 22px; text-align:center; min-width:110px;
+  }
+  .stat .num{ font-family:'Frank Ruhl Libre',serif; font-size:26px; color:var(--wine-dark); }
+  .stat .label{ font-size:12.5px; color:#8a7d6f; }
+
+  .filter-bar{ display:flex; gap:8px; margin-bottom:14px; }
+  .filter-bar button{
+    background:#fff; border:1.5px solid var(--line); color:#6b5f57;
+    padding:6px 14px; border-radius:20px; font-size:13px; cursor:pointer;
+  }
+  .filter-bar button.active{ background:var(--wine); color:#fff; border-color:var(--wine); }
+
+  textarea.bulk{ width:100%; min-height:90px; font-family:'Assistant',sans-serif; font-size:14px; padding:10px; border-radius:8px; border:1.5px solid var(--line); }
+
+  .seating-layout{ display:grid; grid-template-columns:260px 1fr; gap:20px; }
+  @media(max-width:800px){ .seating-layout{ grid-template-columns:1fr; } }
+
+  .pool{
+    background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px;
+    max-height:640px; overflow:auto;
+  }
+  .pool h3{ font-family:'Frank Ruhl Libre',serif; font-size:16px; margin:0 0 10px; color:var(--wine-dark); }
+  .chip{
+    background:var(--ok-bg); color:var(--ok);
+    border:1px solid #cfe6d6;
+    padding:8px 10px; border-radius:8px; margin-bottom:8px;
+    cursor:grab; font-size:13.5px; font-weight:600;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .chip:active{ cursor:grabbing; }
+
+  .tables-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:16px; }
+  .table-card{
+    background:#fff; border:2px dashed var(--line); border-radius:14px; padding:14px; min-height:140px;
+  }
+  .table-card.dragover{ border-color:var(--gold); background:#fdf8ee; }
+  .table-card h4{
+    font-family:'Frank Ruhl Libre',serif; margin:0 0 4px; color:var(--wine-dark); font-size:16px;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .table-card .cap{ font-size:12px; color:#8a7d6f; margin-bottom:8px; }
+  .table-card .cap.over{ color:var(--no); font-weight:700; }
+  .seat-chip{
+    background:var(--cream); border:1px solid var(--line); border-radius:6px;
+    padding:5px 8px; margin-bottom:6px; font-size:13px;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .seat-chip button{
+    background:none; border:none; color:var(--no); cursor:pointer; font-size:14px; padding:0 2px;
+  }
+  .add-table-form{ display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .add-table-form input{ padding:9px 10px; border-radius:8px; border:1.5px solid var(--line); font-family:'Assistant',sans-serif; }
+
+  .empty-hint{ color:#a89b8f; font-size:13.5px; text-align:center; padding:20px; }
+  .toast{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    background:var(--wine-dark); color:#fff; padding:10px 20px; border-radius:8px;
+    font-size:14px; opacity:0; pointer-events:none; transition:opacity .3s;
+    z-index:999;
+  }
+  .toast.show{ opacity:1; }
+
+  @media print{
+    header, nav.tabs, .settings-panel, #tab-guests, #tab-tracking, .add-table-form, .pool, .filter-bar, .stats { display:none !important; }
+    body{ background:#fff; }
+    .table-card{ break-inside:avoid; border:1.5px solid #999; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>💍 ניהול אישורי הגעה וסידור שולחנות</h1>
+    <div class="sub">כלי אישי לניהול החתונה</div>
+  </div>
+  <button class="settings-toggle" id="settingsToggle">⚙️ הגדרות חיבור</button>
+</header>
+
+<div class="settings-panel" id="settingsPanel">
+  <div class="settings-grid">
+    <div class="field">
+      <label>כתובת ה-Web App מה-Google Apps Script</label>
+      <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/.../exec">
+    </div>
+    <div class="field">
+      <label>סיסמת מנהל (ADMIN_KEY מהקוד)</label>
+      <input type="text" id="adminKey" placeholder="הסיסמה שהגדרת ב-Code.gs">
+    </div>
+    <div class="field">
+      <label>כתובת דף אישור ההגעה שהעלית לאינטרנט (rsvp.html)</label>
+      <input type="text" id="rsvpBaseUrl" placeholder="https://yourname.github.io/wedding/rsvp.html">
+    </div>
+    <div class="field" style="grid-column:1/-1;">
+      <label>תבנית ההודעה בוואטסאפ (אפשר להשתמש ב-{name} ו-{link})</label>
+      <textarea id="msgTemplate">היי {name}! 💍 מתחתנים ואנחנו רוצים אתכם שם!
+נשמח שתאשרו הגעה בקישור הקצר הזה: {link}</textarea>
+    </div>
+  </div>
+  <button class="save-settings" id="saveSettings">שמור הגדרות</button>
+</div>
+
+<nav class="tabs">
+  <button data-tab="guests" class="active">אורחים ושליחה</button>
+  <button data-tab="tracking">מעקב אישורים</button>
+  <button data-tab="seating">סידור שולחנות</button>
+</nav>
+
+<main>
+
+  <!-- ================= TAB: GUESTS ================= -->
+  <section class="panel active" id="tab-guests">
+    <div class="card">
+      <h2>סנכרון עם הגיליון</h2>
+      <div class="row">
+        <button class="secondary" id="loadGuestsBtn">⬇ טען אורחים מהגיליון</button>
+        <button class="primary" id="saveGuestsBtn">⬆ שמור שינויים לגיליון</button>
+      </div>
+      <p style="font-size:13px;color:#8a7d6f;margin-top:10px;">
+        טיפ: לפני שמוסיפים אורחים חדשים, כדאי לטעון קודם מהגיליון כדי לא לדרוס תשובות שכבר התקבלו.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>הוספת אורח בודד</h2>
+      <div class="row">
+        <div class="field"><label>שם</label><input id="newName" placeholder="למשל: דנה כהן"></div>
+        <div class="field"><label>טלפון (05X-XXXXXXX)</label><input id="newPhone" placeholder="0501234567"></div>
+        <div class="field"><label>צד</label><input id="newSide" placeholder="חתן / כלה / משפחה"></div>
+        <button class="primary" id="addGuestBtn">הוסף</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>הוספה מרובה (הדבקה מטבלה)</h2>
+      <p style="font-size:13px;color:#8a7d6f;margin-top:-4px;">כל שורה: שם, טלפון, צד (מופרד בפסיקים)</p>
+      <textarea class="bulk" id="bulkText" placeholder="דנה כהן, 0501234567, כלה&#10;יוסי לוי, 0529876543, חתן"></textarea>
+      <div style="margin-top:10px;"><button class="primary" id="bulkAddBtn">הוסף את כל הרשימה</button></div>
+    </div>
+
+    <div class="card">
+      <h2>רשימת אורחים (<span id="guestCountLabel">0</span>)</h2>
+      <table>
+        <thead><tr><th>שם</th><th>טלפון</th><th>צד</th><th>סטטוס</th><th>שליחה</th><th></th></tr></thead>
+        <tbody id="guestsTableBody"></tbody>
+      </table>
+      <div class="empty-hint" id="guestsEmptyHint">עדיין אין אורחים ברשימה. טענו מהגיליון או הוסיפו למעלה.</div>
+    </div>
+  </section>
+
+  <!-- ================= TAB: TRACKING ================= -->
+  <section class="panel" id="tab-tracking">
+    <div class="card">
+      <div class="row" style="justify-content:space-between;">
+        <h2 style="margin:0;">מעקב אישורי הגעה</h2>
+        <button class="secondary" id="refreshTrackingBtn">🔄 רענן מהגיליון</button>
+      </div>
+      <div class="stats" id="statsBar" style="margin-top:16px;"></div>
+      <div class="filter-bar" id="filterBar">
+        <button data-filter="all" class="active">הכל</button>
+        <button data-filter="מגיע">מגיעים</button>
+        <button data-filter="לא מגיע">לא מגיעים</button>
+        <button data-filter="ממתין">ממתינים</button>
+      </div>
+      <table>
+        <thead><tr><th>שם</th><th>טלפון</th><th>צד</th><th>סטטוס</th><th>כמות</th></tr></thead>
+        <tbody id="trackingTableBody"></tbody>
+      </table>
+      <div class="empty-hint" id="trackingEmptyHint">לחצו "רענן מהגיליון" כדי לראות תשובות.</div>
+    </div>
+  </section>
+
+  <!-- ================= TAB: SEATING ================= -->
+  <section class="panel" id="tab-seating">
+    <div class="card">
+      <h2>שולחנות</h2>
+      <div class="add-table-form">
+        <input id="newTableName" placeholder="שם שולחן, למשל: שולחן 1">
+        <input id="newTableChairs" type="number" min="1" value="10" style="width:90px;">
+        <button class="primary" id="addTableBtn">הוסף שולחן</button>
+        <button class="secondary" id="saveSeatingBtn">💾 שמור סידור לגיליון</button>
+        <button class="secondary" id="printBtn">🖨️ הדפסה</button>
+      </div>
+    </div>
+
+    <div class="seating-layout">
+      <div class="pool">
+        <h3>אורחים שאישרו הגעה (גררו לשולחן)</h3>
+        <div id="guestPool"></div>
+      </div>
+      <div>
+        <div class="tables-grid" id="tablesGrid"></div>
+        <div class="empty-hint" id="tablesEmptyHint">עדיין לא הוגדרו שולחנות. הוסיפו למעלה.</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ מצב כללי ============ */
+let guests = [];      // {id,name,phone,side,status,guestCount,table,notes}
+let tables = [];      // {tableId,tableName,chairs}
+let trackingFilter = 'all';
+
+/* ============ הגדרות ============ */
+function loadSettings(){
+  document.getElementById('scriptUrl').value = localStorage.getItem('ws_scriptUrl') || '';
+  document.getElementById('adminKey').value = localStorage.getItem('ws_adminKey') || '';
+  document.getElementById('rsvpBaseUrl').value = localStorage.getItem('ws_rsvpBaseUrl') || '';
+  document.getElementById('msgTemplate').value = localStorage.getItem('ws_msgTemplate') ||
+    document.getElementById('msgTemplate').value;
+}
+function saveSettings(){
+  localStorage.setItem('ws_scriptUrl', document.getElementById('scriptUrl').value.trim());
+  localStorage.setItem('ws_adminKey', document.getElementById('adminKey').value.trim());
+  localStorage.setItem('ws_rsvpBaseUrl', document.getElementById('rsvpBaseUrl').value.trim());
+  localStorage.setItem('ws_msgTemplate', document.getElementById('msgTemplate').value);
+  showToast('ההגדרות נשמרו');
+}
+function scriptUrl(){ return localStorage.getItem('ws_scriptUrl') || ''; }
+function adminKey(){ return localStorage.getItem('ws_adminKey') || ''; }
+function rsvpBaseUrl(){ return localStorage.getItem('ws_rsvpBaseUrl') || ''; }
+function msgTemplate(){ return localStorage.getItem('ws_msgTemplate') || document.getElementById('msgTemplate').value; }
+
+document.getElementById('settingsToggle').addEventListener('click', () => {
+  document.getElementById('settingsPanel').classList.toggle('show');
+});
+document.getElementById('saveSettings').addEventListener('click', saveSettings);
+
+/* ============ טאבים ============ */
+document.querySelectorAll('nav.tabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('nav.tabs button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('main .panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ============ Toast ============ */
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+/* ============ עזרים ============ */
+function uid(){ return 'g' + Math.random().toString(36).slice(2, 10); }
+
+function normalizePhone(raw){
+  let p = (raw || '').replace(/[^\d]/g, '');
+  if (p.startsWith('0')) p = '972' + p.slice(1);
+  else if (!p.startsWith('972')) p = '972' + p;
+  return p;
+}
+
+function buildWaLink(guest){
+  const link = rsvpBaseUrl() ? (rsvpBaseUrl() + '?id=' + guest.id) : '(הגדר קודם כתובת דף אישור בהגדרות)';
+  const text = msgTemplate().replace('{name}', guest.name).replace('{link}', link);
+  return 'https://wa.me/' + normalizePhone(guest.phone) + '?text=' + encodeURIComponent(text);
+}
+
+async function callApi(params){
+  const url = scriptUrl() + '?' + new URLSearchParams(params).toString();
+  const res = await fetch(url);
+  return res.json();
+}
+async function postApi(body){
+  const res = await fetch(scriptUrl(), {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(body)
+  });
+  return res.json();
+}
+
+function requireConfig(){
+  if (!scriptUrl() || !adminKey()){
+    alert('קודם יש להגדיר את כתובת השרת וסיסמת המנהל (⚙️ הגדרות חיבור).');
+    return false;
+  }
+  return true;
+}
+
+/* ============ אורחים - טעינה/שמירה ============ */
+async function loadGuestsFromSheet(){
+  if (!requireConfig()) return;
+  try{
+    const data = await callApi({ action: 'getAllGuests', key: adminKey() });
+    if (data.error){ alert('שגיאה: ' + data.error); return; }
+    guests = data.map(g => ({
+      id: g.id, name: g.name, phone: g.phone, side: g.side,
+      status: g.status || 'ממתין', guestCount: g.guestCount || 1, table: g.table || '', notes: g.notes || ''
+    }));
+    renderGuestsTable();
+    showToast('נטענו ' + guests.length + ' אורחים מהגיליון');
+  }catch(err){ alert('שגיאת חיבור: ' + err); }
+}
+
+async function saveGuestsToSheet(){
+  if (!requireConfig()) return;
+  try{
+    const data = await postApi({ action: 'saveGuests', key: adminKey(), guests });
+    if (data.error){ alert('שגיאה: ' + data.error); return; }
+    showToast('הרשימה נשמרה בגיליון');
+  }catch(err){ alert('שגיאת חיבור: ' + err); }
+}
+
+document.getElementById('loadGuestsBtn').addEventListener('click', loadGuestsFromSheet);
+document.getElementById('saveGuestsBtn').addEventListener('click', saveGuestsToSheet);
+
+/* ============ הוספת אורחים ============ */
+document.getElementById('addGuestBtn').addEventListener('click', () => {
+  const name = document.getElementById('newName').value.trim();
+  const phone = document.getElementById('newPhone').value.trim();
+  const side = document.getElementById('newSide').value.trim();
+  if (!name || !phone){ alert('יש למלא שם וטלפון'); return; }
+  guests.push({ id: uid(), name, phone, side, status: 'ממתין', guestCount: 1, table: '', notes: '' });
+  document.getElementById('newName').value = '';
+  document.getElementById('newPhone').value = '';
+  document.getElementById('newSide').value = '';
+  renderGuestsTable();
+});
+
+document.getElementById('bulkAddBtn').addEventListener('click', () => {
+  const lines = document.getElementById('bulkText').value.split('\n').map(l => l.trim()).filter(Boolean);
+  lines.forEach(line => {
+    const parts = line.split(',').map(p => p.trim());
+    if (!parts[0] || !parts[1]) return;
+    guests.push({ id: uid(), name: parts[0], phone: parts[1], side: parts[2] || '', status: 'ממתין', guestCount: 1, table: '', notes: '' });
+  });
+  document.getElementById('bulkText').value = '';
+  renderGuestsTable();
+});
+
+function removeGuest(id){
+  if (!confirm('להסיר את האורח מהרשימה?')) return;
+  guests = guests.filter(g => g.id !== id);
+  renderGuestsTable();
+}
+
+function statusBadge(status){
+  if (status === 'מגיע') return '<span class="badge ok">מגיע</span>';
+  if (status === 'לא מגיע') return '<span class="badge no">לא מגיע</span>';
+  return '<span class="badge wait">ממתין</span>';
+}
+
+function renderGuestsTable(){
+  const body = document.getElementById('guestsTableBody');
+  body.innerHTML = '';
+  document.getElementById('guestCountLabel').textContent = guests.length;
+  document.getElementById('guestsEmptyHint').style.display = guests.length ? 'none' : 'block';
+  guests.forEach(g => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${g.name}</td>
+      <td>${g.phone}</td>
+      <td>${g.side || ''}</td>
+      <td>${statusBadge(g.status)}</td>
+      <td><button class="wa" data-wa="${g.id}">שלח בוואטסאפ</button></td>
+      <td><button class="danger-outline" data-del="${g.id}">הסר</button></td>
+    `;
+    body.appendChild(tr);
+  });
+  body.querySelectorAll('[data-wa]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const g = guests.find(x => x.id === btn.dataset.wa);
+      window.open(buildWaLink(g), '_blank');
+    });
+  });
+  body.querySelectorAll('[data-del]').forEach(btn => {
+    btn.addEventListener('click', () => removeGuest(btn.dataset.del));
+  });
+}
+
+/* ============ מעקב אישורים ============ */
+async function refreshTracking(){
+  if (!requireConfig()) return;
+  try{
+    const data = await callApi({ action: 'getAllGuests', key: adminKey() });
+    if (data.error){ alert('שגיאה: ' + data.error); return; }
+    guests = data.map(g => ({
+      id: g.id, name: g.name, phone: g.phone, side: g.side,
+      status: g.status || 'ממתין', guestCount: g.guestCount || 1, table: g.table || '', notes: g.notes || ''
+    }));
+    renderStats();
+    renderTrackingTable();
+    renderGuestsTable();
+    showToast('התשובות עודכנו');
+  }catch(err){ alert('שגיאת חיבור: ' + err); }
+}
+document.getElementById('refreshTrackingBtn').addEventListener('click', refreshTracking);
+
+function renderStats(){
+  const total = guests.length;
+  const coming = guests.filter(g => g.status === 'מגיע');
+  const notComing = guests.filter(g => g.status === 'לא מגיע').length;
+  const waiting = guests.filter(g => g.status === 'ממתין' || !g.status).length;
+  const totalPeople = coming.reduce((sum, g) => sum + (parseInt(g.guestCount) || 1), 0);
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat"><div class="num">${total}</div><div class="label">סה"כ הוזמנו</div></div>
+    <div class="stat"><div class="num">${coming.length}</div><div class="label">אישרו הגעה</div></div>
+    <div class="stat"><div class="num">${totalPeople}</div><div class="label">סה"כ נפשות מגיעות</div></div>
+    <div class="stat"><div class="num">${notComing}</div><div class="label">לא מגיעים</div></div>
+    <div class="stat"><div class="num">${waiting}</div><div class="label">ממתינים</div></div>
+  `;
+}
+
+document.getElementById('filterBar').addEventListener('click', (e) => {
+  if (e.target.tagName !== 'BUTTON') return;
+  trackingFilter = e.target.dataset.filter;
+  document.querySelectorAll('#filterBar button').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  renderTrackingTable();
+});
+
+function renderTrackingTable(){
+  const body = document.getElementById('trackingTableBody');
+  body.innerHTML = '';
+  const list = trackingFilter === 'all' ? guests : guests.filter(g => (g.status || 'ממתין') === trackingFilter);
+  document.getElementById('trackingEmptyHint').style.display = list.length ? 'none' : 'block';
+  list.forEach(g => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${g.name}</td><td>${g.phone}</td><td>${g.side || ''}</td>
+      <td>${statusBadge(g.status)}</td><td>${g.status === 'מגיע' ? (g.guestCount || 1) : '-'}</td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+/* ============ סידור שולחנות ============ */
+document.getElementById('addTableBtn').addEventListener('click', () => {
+  const name = document.getElementById('newTableName').value.trim();
+  const chairs = parseInt(document.getElementById('newTableChairs').value) || 0;
+  if (!name || !chairs){ alert('יש להזין שם שולחן ומספר כיסאות'); return; }
+  tables.push({ tableId: uid(), tableName: name, chairs });
+  document.getElementById('newTableName').value = '';
+  renderSeating();
+});
+
+document.getElementById('saveSeatingBtn').addEventListener('click', async () => {
+  if (!requireConfig()) return;
+  const assignments = {};
+  guests.forEach(g => { if (g.table) assignments[g.id] = g.table; });
+  try{
+    await postApi({ action: 'saveTables', key: adminKey(), tables });
+    const data = await postApi({ action: 'saveSeating', key: adminKey(), assignments });
+    if (data.error){ alert('שגיאה: ' + data.error); return; }
+    showToast('הסידור נשמר בגיליון');
+  }catch(err){ alert('שגיאת חיבור: ' + err); }
+});
+
+document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+function tableOccupancy(tableId){
+  return guests
+    .filter(g => g.table === tableId && g.status === 'מגיע')
+    .reduce((sum, g) => sum + (parseInt(g.guestCount) || 1), 0);
+}
+
+function renderSeating(){
+  // pool: confirmed guests with no table
+  const pool = document.getElementById('guestPool');
+  const unseated = guests.filter(g => g.status === 'מגיע' && !g.table);
+  pool.innerHTML = unseated.length ? '' : '<div class="empty-hint">אין אורחים ממתינים לשיבוץ</div>';
+  unseated.forEach(g => {
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.draggable = true;
+    chip.dataset.guestId = g.id;
+    chip.innerHTML = `<span>${g.name}</span><span>(${g.guestCount || 1})</span>`;
+    chip.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', g.id));
+    pool.appendChild(chip);
+  });
+
+  // tables grid
+  const grid = document.getElementById('tablesGrid');
+  document.getElementById('tablesEmptyHint').style.display = tables.length ? 'none' : 'block';
+  grid.innerHTML = '';
+  tables.forEach(t => {
+    const occ = tableOccupancy(t.tableId);
+    const over = occ > t.chairs;
+    const card = document.createElement('div');
+    card.className = 'table-card';
+    card.dataset.tableId = t.tableId;
+    const seated = guests.filter(g => g.table === t.tableId && g.status === 'מגיע');
+    card.innerHTML = `
+      <h4>${t.tableName} <button class="danger-outline" data-del-table="${t.tableId}" style="font-size:11px;">מחק</button></h4>
+      <div class="cap ${over ? 'over' : ''}">${occ} / ${t.chairs} מקומות${over ? ' - חריגה!' : ''}</div>
+      <div class="seats"></div>
+    `;
+    const seatsDiv = card.querySelector('.seats');
+    seated.forEach(g => {
+      const sc = document.createElement('div');
+      sc.className = 'seat-chip';
+      sc.innerHTML = `<span>${g.name} (${g.guestCount || 1})</span><button data-remove-seat="${g.id}">✕</button>`;
+      seatsDiv.appendChild(sc);
+    });
+    card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('dragover'); });
+    card.addEventListener('dragleave', () => card.classList.remove('dragover'));
+    card.addEventListener('drop', (e) => {
+      e.preventDefault();
+      card.classList.remove('dragover');
+      const guestId = e.dataTransfer.getData('text/plain');
+      const g = guests.find(x => x.id === guestId);
+      if (g) g.table = t.tableId;
+      renderSeating();
+    });
+    grid.appendChild(card);
+  });
+  grid.querySelectorAll('[data-remove-seat]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const g = guests.find(x => x.id === btn.dataset.removeSeat);
+      if (g) g.table = '';
+      renderSeating();
+    });
+  });
+  grid.querySelectorAll('[data-del-table]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!confirm('למחוק את השולחן? אורחים משובצים יחזרו לרשימת ההמתנה.')) return;
+      const tid = btn.dataset.delTable;
+      guests.forEach(g => { if (g.table === tid) g.table = ''; });
+      tables = tables.filter(t => t.tableId !== tid);
+      renderSeating();
+    });
+  });
+}
+
+async function loadTablesFromSheet(){
+  if (!scriptUrl() || !adminKey()) return;
+  try{
+    const data = await callApi({ action: 'getTables', key: adminKey() });
+    if (!data.error) tables = data;
+  }catch(err){ /* silent */ }
+}
+
+/* ============ אתחול ============ */
+loadSettings();
+renderGuestsTable();
+renderSeating();
+</script>
+
+</body>
+</html>
