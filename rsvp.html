@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>אישור הגעה לחתונה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FBF5EE;
+    --wine:#6B2C39;
+    --wine-dark:#4E1F29;
+    --gold:#C9A24B;
+    --ink:#2B2320;
+    --ok:#3F7A57;
+    --no:#B14A3D;
+    --card:#FFFFFF;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:radial-gradient(circle at 50% -10%, #f4e6d0 0%, var(--cream) 55%);
+    font-family:'Assistant',sans-serif;
+    color:var(--ink);
+    padding:24px;
+  }
+  .card{
+    background:var(--card);
+    border-radius:18px;
+    max-width:440px;
+    width:100%;
+    padding:36px 28px 30px;
+    box-shadow:0 20px 50px rgba(107,44,57,0.15);
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    top:0;left:0;right:0;
+    height:6px;
+    background:linear-gradient(90deg, var(--wine), var(--gold), var(--wine));
+  }
+  .ornament{
+    font-size:22px;
+    color:var(--gold);
+    letter-spacing:6px;
+    margin-bottom:6px;
+  }
+  h1{
+    font-family:'Frank Ruhl Libre',serif;
+    font-size:26px;
+    color:var(--wine-dark);
+    margin:0 0 6px;
+  }
+  .guestname{
+    font-family:'Frank Ruhl Libre',serif;
+    font-size:22px;
+    color:var(--wine);
+    margin:2px 0 18px;
+  }
+  p.sub{
+    font-size:15px;
+    color:#6b5f57;
+    margin:0 0 26px;
+    line-height:1.6;
+  }
+  .btns{
+    display:flex;
+    gap:12px;
+    margin-bottom:8px;
+  }
+  button{
+    flex:1;
+    border:none;
+    border-radius:12px;
+    padding:16px 8px;
+    font-family:'Assistant',sans-serif;
+    font-weight:700;
+    font-size:16px;
+    cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  button:active{ transform:scale(0.97); }
+  .btn-yes{ background:var(--ok); color:#fff; }
+  .btn-no{ background:#f1e7e0; color:var(--no); border:1.5px solid var(--no); }
+  .btn-yes:hover{ box-shadow:0 8px 18px rgba(63,122,87,0.35); }
+  .btn-no:hover{ box-shadow:0 8px 18px rgba(177,74,61,0.2); }
+
+  .count-row{
+    display:none;
+    margin-top:18px;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+  }
+  .count-row.show{ display:flex; }
+  .count-row label{ font-size:14px; color:#6b5f57; }
+  select{
+    font-family:'Assistant',sans-serif;
+    font-size:15px;
+    padding:8px 10px;
+    border-radius:8px;
+    border:1.5px solid #e0d3c4;
+    background:#fff;
+  }
+  .confirm-btn{
+    margin-top:16px;
+    width:100%;
+    background:var(--wine);
+    color:#fff;
+    display:none;
+  }
+  .confirm-btn.show{ display:block; }
+
+  .result{
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+  }
+  .result.show{ display:flex; }
+  .result .icon{ font-size:44px; }
+  .result h2{
+    font-family:'Frank Ruhl Libre',serif;
+    font-size:22px;
+    margin:0;
+    color:var(--wine-dark);
+  }
+  .result p{ color:#6b5f57; font-size:14px; margin:0; }
+  .change{
+    margin-top:10px;
+    background:none;
+    border:none;
+    color:var(--wine);
+    text-decoration:underline;
+    font-size:14px;
+    cursor:pointer;
+    flex:none;
+    padding:4px;
+  }
+  .error{
+    color:var(--no);
+    font-size:14px;
+  }
+  .loading{ color:#a89b8f; font-size:14px; }
+</style>
+</head>
+<body>
+
+<div class="card" id="card">
+  <div class="ornament">✦ ✦ ✦</div>
+  <h1>אישור הגעה</h1>
+  <div class="guestname" id="guestName">טוען...</div>
+  <p class="sub" id="subText">נשמח לדעת אם תוכלו להצטרף לחגיגה שלנו!</p>
+
+  <div id="formArea">
+    <div class="btns">
+      <button class="btn-yes" id="yesBtn">מגיע/ה 🎉</button>
+      <button class="btn-no" id="noBtn">לא מגיע/ה</button>
+    </div>
+
+    <div class="count-row" id="countRow">
+      <label for="countSelect">כמה אנשים בסה"כ (כולל אותך)?</label>
+      <select id="countSelect">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+      </select>
+    </div>
+
+    <button class="confirm-btn" id="confirmBtn">שליחת אישור</button>
+  </div>
+
+  <div class="result" id="resultArea">
+    <div class="icon" id="resultIcon">🎉</div>
+    <h2 id="resultTitle">האישור נשלח!</h2>
+    <p id="resultText">תודה רבה, נתראה בחתונה!</p>
+    <button class="change" id="changeBtn">רוצה לשנות את התשובה?</button>
+  </div>
+</div>
+
+<script>
+  // === הגדרה: הדביקו כאן את כתובת ה-Web App מה-Google Apps Script ===
+  const APPS_SCRIPT_URL = 'PUT_YOUR_APPS_SCRIPT_URL_HERE';
+
+  const params = new URLSearchParams(window.location.search);
+  const guestId = params.get('id');
+
+  const guestNameEl = document.getElementById('guestName');
+  const subText = document.getElementById('subText');
+  const formArea = document.getElementById('formArea');
+  const resultArea = document.getElementById('resultArea');
+  const yesBtn = document.getElementById('yesBtn');
+  const noBtn = document.getElementById('noBtn');
+  const countRow = document.getElementById('countRow');
+  const countSelect = document.getElementById('countSelect');
+  const confirmBtn = document.getElementById('confirmBtn');
+  const changeBtn = document.getElementById('changeBtn');
+  const resultIcon = document.getElementById('resultIcon');
+  const resultTitle = document.getElementById('resultTitle');
+  const resultText = document.getElementById('resultText');
+
+  let chosenStatus = null;
+
+  function showError(msg){
+    guestNameEl.textContent = '';
+    subText.innerHTML = '<span class="error">' + msg + '</span>';
+    formArea.style.display = 'none';
+  }
+
+  async function loadGuest(){
+    if (!guestId){
+      showError('קישור לא תקין - חסר מזהה אורח.');
+      return;
+    }
+    if (APPS_SCRIPT_URL.indexOf('PUT_YOUR') === 0){
+      showError('המערכת עדיין לא מוגדרת (כתובת שרת חסרה).');
+      return;
+    }
+    try{
+      const res = await fetch(APPS_SCRIPT_URL + '?action=getGuest&id=' + encodeURIComponent(guestId));
+      const data = await res.json();
+      if (data.error){
+        showError('לא נמצאה הזמנה תחת הקישור הזה.');
+        return;
+      }
+      guestNameEl.textContent = data.name;
+      if (data.status && data.status !== 'ממתין'){
+        showAlreadyAnswered(data.status, data.guestCount);
+      }
+    }catch(err){
+      showError('שגיאה בטעינת הנתונים. נסו שוב מאוחר יותר.');
+    }
+  }
+
+  function showAlreadyAnswered(status, guestCount){
+    formArea.style.display = 'none';
+    resultArea.classList.add('show');
+    if (status === 'מגיע'){
+      resultIcon.textContent = '🎉';
+      resultTitle.textContent = 'מעולה, מחכים לכם!';
+      resultText.textContent = 'רשמנו שתגיעו' + (guestCount ? (' (' + guestCount + ' אנשים)') : '') + '.';
+    } else {
+      resultIcon.textContent = '💌';
+      resultTitle.textContent = 'תודה שעדכנתם';
+      resultText.textContent = 'רשמנו שלא תוכלו להגיע הפעם.';
+    }
+  }
+
+  yesBtn.addEventListener('click', () => {
+    chosenStatus = 'מגיע';
+    yesBtn.style.outline = '3px solid var(--gold)';
+    noBtn.style.outline = 'none';
+    countRow.classList.add('show');
+    confirmBtn.classList.add('show');
+  });
+
+  noBtn.addEventListener('click', () => {
+    chosenStatus = 'לא מגיע';
+    noBtn.style.outline = '3px solid var(--gold)';
+    yesBtn.style.outline = 'none';
+    countRow.classList.remove('show');
+    confirmBtn.classList.add('show');
+  });
+
+  confirmBtn.addEventListener('click', async () => {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'שולח...';
+    const guestCount = chosenStatus === 'מגיע' ? countSelect.value : '';
+    try{
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'rsvp', id: guestId, status: chosenStatus, guestCount })
+      });
+      const data = await res.json();
+      if (data.error){
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'שליחת אישור';
+        alert('שגיאה בשליחה, נסו שוב.');
+        return;
+      }
+      formArea.style.display = 'none';
+      resultArea.classList.add('show');
+      if (chosenStatus === 'מגיע'){
+        resultIcon.textContent = '🎉';
+        resultTitle.textContent = 'האישור נשלח!';
+        resultText.textContent = 'תודה רבה, נתראה בחתונה!';
+      } else {
+        resultIcon.textContent = '💌';
+        resultTitle.textContent = 'האישור נשלח';
+        resultText.textContent = 'תודה שעדכנתם אותנו, יחסר לנו שלא תהיו שם.';
+      }
+    }catch(err){
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'שליחת אישור';
+      alert('שגיאת חיבור, נסו שוב.');
+    }
+  });
+
+  changeBtn.addEventListener('click', () => {
+    resultArea.classList.remove('show');
+    formArea.style.display = 'block';
+    countRow.classList.remove('show');
+    confirmBtn.classList.remove('show');
+    yesBtn.style.outline = 'none';
+    noBtn.style.outline = 'none';
+    chosenStatus = null;
+  });
+
+  loadGuest();
+</script>
+
+</body>
+</html>
