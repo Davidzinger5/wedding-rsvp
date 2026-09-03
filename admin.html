@@ -292,6 +292,8 @@
     </div>
   </div>
   <button class="save-settings" id="saveSettings">שמור הגדרות</button>
+  <button class="save-settings" id="testConnectionBtn" style="background:var(--gold); margin-right:10px;">🔍 בדיקת חיבור לשרת</button>
+  <div id="testResult" style="margin-top:12px; font-size:14px; max-width:700px; line-height:1.6;"></div>
 </div>
 
 <nav class="tabs">
@@ -424,6 +426,76 @@ document.getElementById('settingsToggle').addEventListener('click', () => {
 });
 document.getElementById('saveSettings').addEventListener('click', saveSettings);
 
+/* ============ בדיקת חיבור לשרת (אבחון) ============ */
+document.getElementById('testConnectionBtn').addEventListener('click', runConnectionTest);
+
+async function runConnectionTest(){
+  const box = document.getElementById('testResult');
+  const url = document.getElementById('scriptUrl').value.trim();
+  const key = document.getElementById('adminKey').value.trim();
+  const rsvp = document.getElementById('rsvpBaseUrl').value.trim();
+
+  box.innerHTML = '<span style="color:#8a7d6f;">בודק...</span>';
+
+  if (!url){
+    box.innerHTML = '<span style="color:var(--no);">❌ שלב 1: לא הוזנה כתובת שרת (Apps Script). מלא אותה קודם.</span>';
+    return;
+  }
+  if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(url)){
+    box.innerHTML = '<span style="color:var(--no);">❌ שלב 1: כתובת השרת לא נראית תקינה. היא צריכה להתחיל ב-https://script.google.com/macros/s/ ולהסתיים ב-/exec (בלי רווחים או תווים חסרים).</span>';
+    return;
+  }
+
+  // שלב 1: בדיקת הגעה בסיסית לשרת (בלי מפתח - כל אחד אמור לקבל תשובה כלשהי, גם אם "לא נמצא")
+  let reachable = false;
+  try{
+    const res1 = await fetch(url + '?action=getGuest&id=__test_ping__');
+    const data1 = await res1.json();
+    reachable = true;
+  }catch(err){
+    box.innerHTML = `
+      <span style="color:var(--no);">❌ שלב 1 נכשל: לא ניתן להגיע לשרת (שגיאת CORS/רשת).</span><br>
+      <b>מה לבדוק:</b><br>
+      1. בעורך ה-Apps Script: Deploy > Manage deployments > וודא שב"מי יש לו גישה" (Who has access) כתוב בדיוק <b>Anyone</b> (כל אחד) - לא "עם חשבון Google".<br>
+      2. אם זה כבר כתוב "Anyone", נסה ליצור <b>פריסה חדשה לגמרי</b> (Deploy > New deployment), ותעדכן כאן את הכתובת החדשה.<br>
+      3. וודא שהכתובת הועתקה במלואה, בלי רווחים בהתחלה/בסוף.
+    `;
+    return;
+  }
+
+  if (!reachable) return;
+
+  // שלב 2: בדיקת סיסמת מנהל
+  if (!key){
+    box.innerHTML = '<span style="color:#b8860b;">⚠️ שלב 1 עבר בהצלחה (השרת נגיש)! אך לא הוזנה סיסמת מנהל, כך שלא ניתן לבדוק אותה.</span>';
+    return;
+  }
+  try{
+    const res2 = await fetch(url + '?action=getAllGuests&key=' + encodeURIComponent(key));
+    const data2 = await res2.json();
+    if (data2 && data2.error === 'unauthorized'){
+      box.innerHTML = `
+        <span style="color:var(--no);">❌ שלב 2 נכשל: השרת נגיש, אך הסיסמה לא תואמת.</span><br>
+        וודא שהערך כאן זהה <b>אות-באות ותו-בתו</b> לשורה <code>const ADMIN_KEY = '...'</code> בתוך Code.gs (רגיש לאותיות גדולות/קטנות ולרווחים).
+      `;
+      return;
+    }
+    if (data2 && data2.error){
+      box.innerHTML = `<span style="color:var(--no);">❌ שגיאה לא צפויה מהשרת: ${data2.error}</span>`;
+      return;
+    }
+    let msg = `✅ הכל תקין! החיבור לשרת ולסיסמה עובדים. יש כרגע <b>${data2.length}</b> אורחים שמורים בגיליון.`;
+    if (!rsvp){
+      msg += '<br><span style="color:#b8860b;">⚠️ שים לב: שדה כתובת דף אישור ההגעה עדיין ריק - קישורי הוואטסאפ לא יעבדו בלי זה.</span>';
+    } else if (!/^https?:\/\/.+\.html?$/.test(rsvp)){
+      msg += '<br><span style="color:#b8860b;">⚠️ שים לב: כתובת דף אישור ההגעה לא נראית כמו כתובת תקינה שמסתיימת ב-.html.</span>';
+    }
+    box.innerHTML = `<span style="color:var(--ok);">${msg}</span>`;
+  }catch(err){
+    box.innerHTML = `<span style="color:var(--no);">❌ שלב 2 נכשל עם שגיאת רשת: ${err}</span>`;
+  }
+}
+
 /* ============ טאבים ============ */
 document.querySelectorAll('nav.tabs button').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -492,7 +564,7 @@ async function loadGuestsFromSheet(){
     }));
     renderGuestsTable();
     showToast('נטענו ' + guests.length + ' אורחים מהגיליון');
-  }catch(err){ alert('שגיאת חיבור: ' + err); }
+  }catch(err){ alert('שגיאת חיבור: ' + err + '\n\nלחצו ⚙️ הגדרות > "בדיקת חיבור לשרת" כדי לאבחן את הבעיה.'); }
 }
 
 async function saveGuestsToSheet(){
@@ -501,7 +573,7 @@ async function saveGuestsToSheet(){
     const data = await postApi({ action: 'saveGuests', key: adminKey(), guests });
     if (data.error){ alert('שגיאה: ' + data.error); return; }
     showToast('הרשימה נשמרה בגיליון');
-  }catch(err){ alert('שגיאת חיבור: ' + err); }
+  }catch(err){ alert('שגיאת חיבור: ' + err + '\n\nלחצו ⚙️ הגדרות > "בדיקת חיבור לשרת" כדי לאבחן את הבעיה.'); }
 }
 
 document.getElementById('loadGuestsBtn').addEventListener('click', loadGuestsFromSheet);
@@ -585,7 +657,7 @@ async function refreshTracking(){
     renderTrackingTable();
     renderGuestsTable();
     showToast('התשובות עודכנו');
-  }catch(err){ alert('שגיאת חיבור: ' + err); }
+  }catch(err){ alert('שגיאת חיבור: ' + err + '\n\nלחצו ⚙️ הגדרות > "בדיקת חיבור לשרת" כדי לאבחן את הבעיה.'); }
 }
 document.getElementById('refreshTrackingBtn').addEventListener('click', refreshTracking);
 
@@ -646,7 +718,7 @@ document.getElementById('saveSeatingBtn').addEventListener('click', async () => 
     const data = await postApi({ action: 'saveSeating', key: adminKey(), assignments });
     if (data.error){ alert('שגיאה: ' + data.error); return; }
     showToast('הסידור נשמר בגיליון');
-  }catch(err){ alert('שגיאת חיבור: ' + err); }
+  }catch(err){ alert('שגיאת חיבור: ' + err + '\n\nלחצו ⚙️ הגדרות > "בדיקת חיבור לשרת" כדי לאבחן את הבעיה.'); }
 });
 
 document.getElementById('printBtn').addEventListener('click', () => window.print());
